@@ -1,4 +1,4 @@
-name: Validate and deploy public evidence explorer
+name: Validate and deploy evidence explorer
 
 on:
   push:
@@ -25,7 +25,7 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - name: Validate public safety boundary
+      - name: Validate published artifact structure
         run: python scripts/validate_public_bundle.py
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v4
