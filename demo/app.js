@@ -1,21 +1,169 @@
-const data = await fetch('./data/results.json', {cache:'no-store'}).then(r => { if(!r.ok) throw new Error(`results: ${r.status}`); return r.json(); });
-const $ = s => document.querySelector(s);
-const model = $('#model'), layer = $('#layer'), grid = $('#grid'), canvas = $('#overlay'), scene = $('#scene');
-const metrics = {retrieval:'Same-region retrieval',ari:'Cluster ARI',boundary_f1:'Boundary F1',grouping_stability:'Grouping stability'};
-let metric = 'retrieval', row = 16, col = 16;
+const data = await fetch('./data/results.json', { cache: 'no-store' }).then(response => {
+  if (!response.ok) throw new Error(`results: ${response.status}`);
+  return response.json();
+});
 
-model.innerHTML = Object.keys(data.models).map(v => `<option>${v}</option>`).join('');
-layer.innerHTML = data.protocol.layers.map(v => `<option value="${v}">Block ${v}</option>`).join('');
-$('#metric-switch').innerHTML = Object.entries(metrics).map(([k,v],i)=>`<button data-metric="${k}" class="${i===0?'active':''}">${v.replace('Same-region ','')}</button>`).join('');
-model.addEventListener('change', render); layer.addEventListener('change', render); grid.addEventListener('change', drawPatch);
-$('#metric-switch').addEventListener('click', e => { const b=e.target.closest('button'); if(!b)return; metric=b.dataset.metric; document.querySelectorAll('#metric-switch button').forEach(x=>x.classList.toggle('active',x===b)); renderChart(); });
-scene.addEventListener('click', e => { const r=scene.getBoundingClientRect(); col=clamp(Math.floor((e.clientX-r.left)/r.width*32),0,31); row=clamp(Math.floor((e.clientY-r.top)/r.height*32),0,31); drawPatch(); });
-scene.addEventListener('keydown', e => { const d={ArrowLeft:[0,-1],ArrowRight:[0,1],ArrowUp:[-1,0],ArrowDown:[1,0]}[e.key]; if(!d)return; e.preventDefault(); row=clamp(row+d[0],0,31); col=clamp(col+d[1],0,31); drawPatch(); });
+const $ = selector => document.querySelector(selector);
+const model = $('#model');
+const layer = $('#layer');
+const grid = $('#grid');
+const canvas = $('#overlay');
+const scene = $('#scene');
+const metrics = {
+  retrieval: 'Retrieval',
+  ari: 'Cluster ARI',
+  boundary_f1: 'Boundary F1',
+  grouping_stability: 'Grouping stability',
+};
+const modelAccents = {
+  DINOv2: '#70e0bd',
+  'SigLIP 2': '#f1c875',
+};
 
-function current(){ return data.models[model.value]; }
-function render(){ const r=current().layers[layer.value]; $('#retrieval').textContent=r.retrieval.toFixed(3); $('#ari').textContent=r.ari.toFixed(3); $('#boundary').textContent=r.boundary_f1.toFixed(3); $('#stability').textContent=r.grouping_stability.toFixed(3); renderChart(); renderRelations(); drawPatch(); }
-function renderChart(){ const svg=$('#chart'), m=current(), layers=data.protocol.layers; $('#chart-title').textContent=metrics[metric]; const vals=layers.map(l=>m.layers[String(l)][metric]); const max=1, x0=54,x1=590,y0=235,y1=35; let s=''; for(const t of [0,.25,.5,.75,1]){const y=y0-(y0-y1)*t;s+=`<line x1="${x0}" y1="${y}" x2="${x1}" y2="${y}" stroke="#20333a"/><text x="8" y="${y+4}" fill="#91a7a7" font-size="11">${t.toFixed(2)}</text>`;} const pts=vals.map((v,i)=>[x0+(x1-x0)*i/2,y0-(v/max)*(y0-y1),v]); s+=`<polyline points="${pts.map(p=>p[0]+','+p[1]).join(' ')}" fill="none" stroke="#62dfc0" stroke-width="4"/>`; pts.forEach((p,i)=>{s+=`<circle cx="${p[0]}" cy="${p[1]}" r="6" fill="#efc56d"/><text x="${p[0]+9}" y="${p[1]-9}" fill="#e7f2ee" font-size="11">${p[2].toFixed(3)}</text><text x="${p[0]-7}" y="260" fill="#91a7a7" font-size="12">L${layers[i]}</text>`}); svg.innerHTML=s; }
-function renderRelations(){ const r=current().typed_relationship_selected; $('#relations').innerHTML=[['Selected layer',`L${r.layer}`],['Matched truth-node recall',r.node_recall.toFixed(3)],['Adjacent F1',r.adjacent_f1.toFixed(3)],['Near F1',r.near_f1.toFixed(3)],['Embedding-similar F1',r.embedding_similar_f1.toFixed(3)],['Macro F1',r.macro_f1.toFixed(3)]].map(([a,b])=>`<div class="relation"><span>${a}</span><b>${b}</b></div>`).join(''); $('#relation-note').textContent='Candidate regions are built before exact labels enter. Containment is deliberately unsupported by the flat partition.'; }
-function drawPatch(){ const ctx=canvas.getContext('2d'); ctx.clearRect(0,0,448,448); if(grid.checked){ctx.beginPath(); for(let i=1;i<32;i++){let p=i*14;ctx.moveTo(p,0);ctx.lineTo(p,448);ctx.moveTo(0,p);ctx.lineTo(448,p);}ctx.strokeStyle='rgba(232,247,242,.25)';ctx.lineWidth=1;ctx.stroke();} ctx.strokeStyle='#fff';ctx.lineWidth=4;ctx.strokeRect(col*14+2,row*14+2,10,10);ctx.strokeStyle='#ff7665';ctx.lineWidth=2;ctx.strokeRect(col*14+5,row*14+5,4,4); $('#patch').textContent=`row ${row} · col ${col}`; $('#box').textContent=`[${col*14}, ${row*14}] → [${(col+1)*14}, ${(row+1)*14}]`; scene.setAttribute('aria-label',`Controlled scene. Selected patch row ${row}, column ${col}. Arrow keys move selection.`); }
-function clamp(v,a,b){return Math.min(Math.max(v,a),b)}
+let metric = 'retrieval';
+let row = 16;
+let col = 16;
+
+model.innerHTML = Object.keys(data.models).map(value => `<option>${value}</option>`).join('');
+layer.innerHTML = data.protocol.layers.map(value => `<option value="${value}">Block ${value}</option>`).join('');
+$('#metric-switch').innerHTML = Object.entries(metrics)
+  .map(([key, label], index) => `<button type="button" data-metric="${key}" class="${index === 0 ? 'active' : ''}" aria-pressed="${index === 0}">${label}</button>`)
+  .join('');
+
+model.addEventListener('change', render);
+layer.addEventListener('change', render);
+grid.addEventListener('change', drawPatch);
+$('#metric-switch').addEventListener('click', event => {
+  const button = event.target.closest('button');
+  if (!button) return;
+  metric = button.dataset.metric;
+  document.querySelectorAll('#metric-switch button').forEach(item => {
+    const active = item === button;
+    item.classList.toggle('active', active);
+    item.setAttribute('aria-pressed', String(active));
+  });
+  renderChart();
+});
+scene.addEventListener('click', event => {
+  const bounds = scene.getBoundingClientRect();
+  col = clamp(Math.floor((event.clientX - bounds.left) / bounds.width * 32), 0, 31);
+  row = clamp(Math.floor((event.clientY - bounds.top) / bounds.height * 32), 0, 31);
+  drawPatch();
+});
+scene.addEventListener('keydown', event => {
+  const delta = {
+    ArrowLeft: [0, -1],
+    ArrowRight: [0, 1],
+    ArrowUp: [-1, 0],
+    ArrowDown: [1, 0],
+  }[event.key];
+  if (!delta) return;
+  event.preventDefault();
+  row = clamp(row + delta[0], 0, 31);
+  col = clamp(col + delta[1], 0, 31);
+  drawPatch();
+});
+
+function current() {
+  return data.models[model.value];
+}
+
+function setAccent() {
+  const accent = modelAccents[model.value] || '#70e0bd';
+  document.documentElement.style.setProperty('--accent', accent);
+  $('#model-chip').textContent = model.value;
+}
+
+function render() {
+  setAccent();
+  const record = current().layers[layer.value];
+  $('#retrieval').textContent = record.retrieval.toFixed(3);
+  $('#ari').textContent = record.ari.toFixed(3);
+  $('#boundary').textContent = record.boundary_f1.toFixed(3);
+  $('#stability').textContent = record.grouping_stability.toFixed(3);
+  renderChart();
+  renderRelations();
+  drawPatch();
+}
+
+function renderChart() {
+  const svg = $('#chart');
+  const currentModel = current();
+  const layers = data.protocol.layers;
+  const values = layers.map(value => currentModel.layers[String(value)][metric]);
+  const accent = modelAccents[model.value] || '#70e0bd';
+  const x0 = 54;
+  const x1 = 590;
+  const y0 = 235;
+  const y1 = 35;
+  let markup = '';
+
+  for (const tick of [0, .25, .5, .75, 1]) {
+    const y = y0 - (y0 - y1) * tick;
+    markup += `<line x1="${x0}" y1="${y}" x2="${x1}" y2="${y}" stroke="rgba(220,240,235,.10)"/>`;
+    markup += `<text x="8" y="${y + 4}" fill="#71868a" font-size="11">${tick.toFixed(2)}</text>`;
+  }
+
+  const points = values.map((value, index) => [
+    x0 + (x1 - x0) * index / 2,
+    y0 - value * (y0 - y1),
+    value,
+  ]);
+
+  markup += `<polyline points="${points.map(point => `${point[0]},${point[1]}`).join(' ')}" fill="none" stroke="${accent}" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>`;
+  points.forEach((point, index) => {
+    markup += `<circle cx="${point[0]}" cy="${point[1]}" r="6" fill="#081115" stroke="${accent}" stroke-width="4"/>`;
+    markup += `<text x="${point[0] + 10}" y="${point[1] - 10}" fill="#edf6f3" font-size="11">${point[2].toFixed(3)}</text>`;
+    markup += `<text x="${point[0] - 7}" y="260" fill="#98aaad" font-size="12">L${layers[index]}</text>`;
+  });
+
+  svg.innerHTML = markup;
+  svg.setAttribute('aria-label', `${metrics[metric]} across transformer depth for ${model.value}`);
+}
+
+function renderRelations() {
+  const record = current().typed_relationship_selected;
+  $('#relations').innerHTML = [
+    ['Selected layer', `L${record.layer}`],
+    ['Matched truth-node recall', record.node_recall.toFixed(3)],
+    ['Adjacent F1', record.adjacent_f1.toFixed(3)],
+    ['Near F1', record.near_f1.toFixed(3)],
+    ['Embedding-similar F1', record.embedding_similar_f1.toFixed(3)],
+    ['Macro F1', record.macro_f1.toFixed(3)],
+  ].map(([label, value]) => `<div class="relation"><span>${label}</span><b>${value}</b></div>`).join('');
+  $('#relation-note').textContent = 'Candidate regions are built before exact labels enter. Containment is reported separately because a flat partition cannot represent hierarchy.';
+}
+
+function drawPatch() {
+  const context = canvas.getContext('2d');
+  context.clearRect(0, 0, 448, 448);
+  if (grid.checked) {
+    context.beginPath();
+    for (let index = 1; index < 32; index += 1) {
+      const position = index * 14;
+      context.moveTo(position, 0);
+      context.lineTo(position, 448);
+      context.moveTo(0, position);
+      context.lineTo(448, position);
+    }
+    context.strokeStyle = 'rgba(232,247,242,.22)';
+    context.lineWidth = 1;
+    context.stroke();
+  }
+  const accent = modelAccents[model.value] || '#70e0bd';
+  context.strokeStyle = '#ffffff';
+  context.lineWidth = 4;
+  context.strokeRect(col * 14 + 2, row * 14 + 2, 10, 10);
+  context.strokeStyle = accent;
+  context.lineWidth = 2;
+  context.strokeRect(col * 14 + 5, row * 14 + 5, 4, 4);
+  $('#patch').textContent = `row ${row} · col ${col}`;
+  $('#box').textContent = `[${col * 14}, ${row * 14}] → [${(col + 1) * 14}, ${(row + 1) * 14}]`;
+  scene.setAttribute('aria-label', `Controlled scene. Selected patch row ${row}, column ${col}. Arrow keys move selection.`);
+}
+
+function clamp(value, minimum, maximum) {
+  return Math.min(Math.max(value, minimum), maximum);
+}
+
 render();
