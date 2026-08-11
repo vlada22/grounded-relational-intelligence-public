@@ -1,0 +1,30 @@
+{
+  "schema_version": 1,
+  "article": "03",
+  "series": "Grounded Visual Intelligence",
+  "private_source_repository": "vlada22/grounded-relational-intelligence",
+  "private_source_commit": "5aa7bd071b8d9a12f2ee9b95af01ceffd4439c03",
+  "private_source_article": "docs/article-03/article.md",
+  "distillation_date": "2026-08-11",
+  "public_repository": "vlada22/grounded-relational-intelligence-public",
+  "public_article": "ARTICLE.md",
+  "public_demo": "demo/",
+  "public_boundary": {
+    "included": [
+      "canonical publication text",
+      "aggregate reviewed metrics",
+      "publication figures",
+      "static explorer",
+      "model identifiers and license references",
+      "deterministic validation and tests"
+    ],
+    "excluded": [
+      "raw patch-feature tensors",
+      "model weights",
+      "gated-model runtime bundles",
+      "private research handoff archives",
+      "internal execution notebooks and research-only artifacts"
+    ]
+  },
+  "notes": "The public repository preserves the scientific conclusions and reproducibility metadata needed for publication while keeping licensed/gated and feature-bearing research material in the private workspace."
+}

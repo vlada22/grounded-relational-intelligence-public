@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="description" content="Interactive evidence explorer for Grounded Relational Intelligence." />
+  <meta name="description" content="Interactive public evidence explorer for Grounded Relational Intelligence." />
   <title>Grounded Relational Intelligence — Evidence Explorer</title>
   <link rel="stylesheet" href="./styles.css" />
 </head>
@@ -25,8 +25,8 @@
   <main id="top">
     <section class="hero">
       <p class="kicker">From pixels to relationships</p>
-      <h1>Useful similarity.<br><em>Careful claims.</em></h1>
-      <p class="lead">Follow the same controlled scene through two frozen vision transformers and three feature depths, then see where useful patch structure stops being enough for an explicit relationship claim.</p>
+      <h1>Useful spatial structure.<br><em>Stronger claims need more.</em></h1>
+      <p class="lead">Compare DINOv2, DINOv3, and SigLIP 2 across the same controlled probe. The central result is simple: no single layer wins every spatial question, and useful similarity does not automatically become a reliable relationship.</p>
       <div class="rules">
         <span><b>Similarity</b> is evidence</span>
         <span><b>Clusters</b> are candidates</span>
@@ -37,11 +37,11 @@
     <section id="explorer" class="explorer">
       <div class="heading">
         <div><p class="kicker">Reviewed experiment</p><h2>Change the model. Change the layer.</h2></div>
-        <p>Keep the scene and probe fixed while the representation changes. The numbers below come from the same controlled evaluation contract used throughout the article.</p>
+        <p>Keep the scene and deterministic probe fixed while the representation changes. The metrics are distilled from the reviewed three-model Article 3 artifacts.</p>
       </div>
 
       <div class="context-strip" aria-label="Experiment scope">
-        <span>Controlled scene</span><i></i><span>DINOv2 + SigLIP 2</span><i></i><span>Blocks 2 · 5 · 11</span>
+        <span>Controlled scene</span><i></i><span>DINOv2 · DINOv3 · SigLIP 2</span><i></i><span>Blocks 2 · 5 · 11</span>
       </div>
 
       <div class="layout">
@@ -49,7 +49,7 @@
           <div class="toolbar">
             <label>Model<select id="model"></select></label>
             <label>Layer<select id="layer"></select></label>
-            <label class="check"><input id="grid" type="checkbox" checked /> 32×32 patch grid</label>
+            <label class="check"><input id="grid" type="checkbox" checked /> <span id="grid-label">32×32 patch grid</span></label>
           </div>
           <div id="scene" class="scene" tabindex="0" aria-label="Controlled scene patch coordinate explorer. Click or use arrow keys to move the selected patch.">
             <img src="../assets/controlled-scene.svg" alt="Controlled procedural scene" />
@@ -77,7 +77,7 @@
           </article>
 
           <article class="relationship-card">
-            <p class="kicker">Typed relationships</p>
+            <p class="kicker">Relationship diagnostics</p>
             <h3>Where composition breaks</h3>
             <div id="relations"></div>
             <p id="relation-note"></p>
@@ -87,12 +87,12 @@
     </section>
 
     <section class="meaning">
-      <div><p class="kicker">The point of the experiment</p><h2>A useful representation is not yet a world model.</h2></div>
-      <p>Patch features can support retrieval, grouping, and boundaries. The moment we say two regions are the same object, adjacent, near, or semantically similar, we have made a new claim. Keeping those steps separate makes the system easier to inspect and the failures easier to understand.</p>
+      <div><p class="kicker">The point of the experiment</p><h2>Similarity is evidence. A relationship is a claim.</h2></div>
+      <p>Patch features can support retrieval, grouping, and boundaries. The moment the system says two regions are the same structure, near, adjacent, or semantically related, it has added a new claim. Keeping those steps separate makes both the useful structure and the failures easier to inspect.</p>
     </section>
   </main>
 
-  <footer><span>Grounded Relational Intelligence · Article 03</span><span>Reviewed aggregate evidence</span></footer>
+  <footer><span>Grounded Relational Intelligence · Article 03</span><span>Reviewed aggregate evidence · No live model inference</span></footer>
   <script type="module" src="./app.js"></script>
 </body>
 </html>

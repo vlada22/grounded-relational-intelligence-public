@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="590" viewBox="0 0 1080 590">
+<rect width="1080" height="590" fill="#07161a"/>
+<text x="48" y="48" fill="#eef6f3" font-family="Inter,Arial" font-size="27" font-weight="700">DINOv3 block 5: candidate partition before truth enters</text>
+<text x="48" y="76" fill="#9bb0ad" font-family="Inter,Arial" font-size="14">Base scene · L2 patch features → PCA-8 → seeded k-means k=6 → three spatial majority passes</text>
+<text x="246" y="106" text-anchor="middle" fill="#dce9e6" font-family="Inter,Arial" font-size="17">Source</text>
+<image href="../controlled-scene.svg" x="50" y="118" width="392" height="392" preserveAspectRatio="none"/>
+<text x="696" y="106" text-anchor="middle" fill="#dce9e6" font-family="Inter,Arial" font-size="17">Seed 17 candidate clusters</text>
+<rect x="500" y="118" width="392" height="392" rx="2" fill="#10262b"/>
+<path d="M500 118H892V230H850V258H766V286H752V342H850V370H822V398H850V454H892V510H500Z" fill="#798fd6" opacity=".84"/>
+<path d="M528 230H612V300H654V328H752V370H668V398H626V370H556V342H528Z" fill="#b281d0" opacity=".90"/>
+<path d="M752 230H850V342H752Z" fill="#d57a83" opacity=".92"/>
+<path d="M836 216H892V370H850V342H836Z" fill="#91ad67" opacity=".90"/>
+<path d="M500 342H556V370H626V398H696V510H500Z" fill="#dfa956" opacity=".92"/>
+<path d="M668 370H850V454H892V510H696V398H668Z" fill="#5db8c5" opacity=".92"/>
+<rect x="500" y="118" width="392" height="392" fill="none" stroke="#254146"/>
+<g stroke="#07161a" stroke-opacity=".35" stroke-width="1"><path d="M514 118V510M528 118V510M542 118V510M556 118V510M570 118V510M584 118V510M598 118V510M612 118V510M626 118V510M640 118V510M654 118V510M668 118V510M682 118V510M696 118V510M710 118V510M724 118V510M738 118V510M752 118V510M766 118V510M780 118V510M794 118V510M808 118V510M822 118V510M836 118V510M850 118V510M864 118V510M878 118V510"/><path d="M500 132H892M500 146H892M500 160H892M500 174H892M500 188H892M500 202H892M500 216H892M500 230H892M500 244H892M500 258H892M500 272H892M500 286H892M500 300H892M500 314H892M500 328H892M500 342H892M500 356H892M500 370H892M500 384H892M500 398H892M500 412H892M500 426H892M500 440H892M500 454H892M500 468H892M500 482H892M500 496H892"/></g>
+<rect x="920" y="142" width="124" height="84" rx="8" fill="#10262b"/><text x="982" y="166" text-anchor="middle" fill="#9bb0ad" font-family="Inter,Arial" font-size="12">ARI · seed 17</text><text x="982" y="203" text-anchor="middle" fill="#efc56d" font-family="Inter,Arial" font-size="27" font-weight="700">0.542</text>
+<rect x="920" y="244" width="124" height="84" rx="8" fill="#10262b"/><text x="982" y="268" text-anchor="middle" fill="#9bb0ad" font-family="Inter,Arial" font-size="12">Boundary F1</text><text x="982" y="305" text-anchor="middle" fill="#69b8c5" font-family="Inter,Arial" font-size="27" font-weight="700">0.810</text>
+<rect x="920" y="346" width="124" height="84" rx="8" fill="#10262b"/><text x="982" y="370" text-anchor="middle" fill="#9bb0ad" font-family="Inter,Arial" font-size="12">3-seed mean ARI</text><text x="982" y="407" text-anchor="middle" fill="#d08089" font-family="Inter,Arial" font-size="27" font-weight="700">0.563</text>
+<text x="50" y="546" fill="#9bb0ad" font-family="Inter,Arial" font-size="13">Exact visible-region masks are withheld until evaluation. The coloured map is a deterministic candidate partition, not semantic segmentation.</text>
+<text x="50" y="568" fill="#9bb0ad" font-family="Inter,Arial" font-size="13">Reviewed metrics: seed 17 ARI 0.542024, tolerant boundary F1 0.809851; mean ARI across seeds 7/17/29 = 0.562904.</text>
+</svg>

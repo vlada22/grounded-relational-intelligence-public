@@ -7,6 +7,7 @@ const $ = selector => document.querySelector(selector);
 const model = $('#model');
 const layer = $('#layer');
 const grid = $('#grid');
+const gridLabel = $('#grid-label');
 const canvas = $('#overlay');
 const scene = $('#scene');
 const metrics = {
@@ -17,6 +18,7 @@ const metrics = {
 };
 const modelAccents = {
   DINOv2: '#70e0bd',
+  DINOv3: '#8fb5ff',
   'SigLIP 2': '#f1c875',
 };
 
@@ -30,7 +32,10 @@ $('#metric-switch').innerHTML = Object.entries(metrics)
   .map(([key, label], index) => `<button type="button" data-metric="${key}" class="${index === 0 ? 'active' : ''}" aria-pressed="${index === 0}">${label}</button>`)
   .join('');
 
-model.addEventListener('change', render);
+model.addEventListener('change', () => {
+  preserveSourceCoordinate();
+  render();
+});
 layer.addEventListener('change', render);
 grid.addEventListener('change', drawPatch);
 $('#metric-switch').addEventListener('click', event => {
@@ -46,8 +51,9 @@ $('#metric-switch').addEventListener('click', event => {
 });
 scene.addEventListener('click', event => {
   const bounds = scene.getBoundingClientRect();
-  col = clamp(Math.floor((event.clientX - bounds.left) / bounds.width * 32), 0, 31);
-  row = clamp(Math.floor((event.clientY - bounds.top) / bounds.height * 32), 0, 31);
+  const [rows, cols] = current().grid;
+  col = clamp(Math.floor((event.clientX - bounds.left) / bounds.width * cols), 0, cols - 1);
+  row = clamp(Math.floor((event.clientY - bounds.top) / bounds.height * rows), 0, rows - 1);
   drawPatch();
 });
 scene.addEventListener('keydown', event => {
@@ -59,13 +65,23 @@ scene.addEventListener('keydown', event => {
   }[event.key];
   if (!delta) return;
   event.preventDefault();
-  row = clamp(row + delta[0], 0, 31);
-  col = clamp(col + delta[1], 0, 31);
+  const [rows, cols] = current().grid;
+  row = clamp(row + delta[0], 0, rows - 1);
+  col = clamp(col + delta[1], 0, cols - 1);
   drawPatch();
 });
 
 function current() {
   return data.models[model.value];
+}
+
+function preserveSourceCoordinate() {
+  const previous = scene.dataset.grid ? scene.dataset.grid.split('x').map(Number) : [32, 32];
+  const x = (col + 0.5) / previous[1];
+  const y = (row + 0.5) / previous[0];
+  const [rows, cols] = current().grid;
+  col = clamp(Math.floor(x * cols), 0, cols - 1);
+  row = clamp(Math.floor(y * rows), 0, rows - 1);
 }
 
 function setAccent() {
@@ -81,6 +97,9 @@ function render() {
   $('#ari').textContent = record.ari.toFixed(3);
   $('#boundary').textContent = record.boundary_f1.toFixed(3);
   $('#stability').textContent = record.grouping_stability.toFixed(3);
+  const [rows, cols] = current().grid;
+  scene.dataset.grid = `${rows}x${cols}`;
+  gridLabel.textContent = `${rows}×${cols} patch grid`;
   renderChart();
   renderRelations();
   drawPatch();
@@ -124,25 +143,31 @@ function renderChart() {
 function renderRelations() {
   const record = current().typed_relationship_selected;
   $('#relations').innerHTML = [
-    ['Selected layer', `L${record.layer}`],
+    ['Best observed base layer', `L${record.layer}`],
     ['Matched truth-node recall', record.node_recall.toFixed(3)],
     ['Adjacent F1', record.adjacent_f1.toFixed(3)],
     ['Near F1', record.near_f1.toFixed(3)],
-    ['Embedding-similar F1', record.embedding_similar_f1.toFixed(3)],
-    ['Macro F1', record.macro_f1.toFixed(3)],
+    ['Embedding diagnostic F1', record.embedding_similarity_diagnostic_f1.toFixed(3)],
+    ['Diagnostic macro F1', record.macro_f1.toFixed(3)],
   ].map(([label, value]) => `<div class="relation"><span>${label}</span><b>${value}</b></div>`).join('');
-  $('#relation-note').textContent = 'Candidate regions are built before exact labels enter. Containment is reported separately because a flat partition cannot represent hierarchy.';
+  $('#relation-note').textContent = 'The displayed layer is a post-hoc descriptive best-observed base-scene summary. Embedding similarity is a cosine diagnostic, not a semantic ground-truth edge type.';
 }
 
 function drawPatch() {
   const context = canvas.getContext('2d');
+  const [rows, cols] = current().grid;
+  const patchWidth = 448 / cols;
+  const patchHeight = 448 / rows;
   context.clearRect(0, 0, 448, 448);
   if (grid.checked) {
     context.beginPath();
-    for (let index = 1; index < 32; index += 1) {
-      const position = index * 14;
+    for (let index = 1; index < cols; index += 1) {
+      const position = index * patchWidth;
       context.moveTo(position, 0);
       context.lineTo(position, 448);
+    }
+    for (let index = 1; index < rows; index += 1) {
+      const position = index * patchHeight;
       context.moveTo(0, position);
       context.lineTo(448, position);
     }
@@ -153,13 +178,17 @@ function drawPatch() {
   const accent = modelAccents[model.value] || '#70e0bd';
   context.strokeStyle = '#ffffff';
   context.lineWidth = 4;
-  context.strokeRect(col * 14 + 2, row * 14 + 2, 10, 10);
+  context.strokeRect(col * patchWidth + 2, row * patchHeight + 2, Math.max(2, patchWidth - 4), Math.max(2, patchHeight - 4));
   context.strokeStyle = accent;
   context.lineWidth = 2;
-  context.strokeRect(col * 14 + 5, row * 14 + 5, 4, 4);
+  context.strokeRect(col * patchWidth + 5, row * patchHeight + 5, Math.max(2, patchWidth - 10), Math.max(2, patchHeight - 10));
+  const x0 = Math.round(col * patchWidth);
+  const y0 = Math.round(row * patchHeight);
+  const x1 = Math.round((col + 1) * patchWidth);
+  const y1 = Math.round((row + 1) * patchHeight);
   $('#patch').textContent = `row ${row} · col ${col}`;
-  $('#box').textContent = `[${col * 14}, ${row * 14}] → [${(col + 1) * 14}, ${(row + 1) * 14}]`;
-  scene.setAttribute('aria-label', `Controlled scene. Selected patch row ${row}, column ${col}. Arrow keys move selection.`);
+  $('#box').textContent = `[${x0}, ${y0}] → [${x1}, ${y1}]`;
+  scene.setAttribute('aria-label', `Controlled scene. ${model.value} ${rows} by ${cols} grid. Selected patch row ${row}, column ${col}. Arrow keys move selection.`);
 }
 
 function clamp(value, minimum, maximum) {

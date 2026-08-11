@@ -1,7 +1,7 @@
 {
-  "schema_version": 1,
+  "schema_version": 2,
   "artifact_kind": "reviewed-aggregate-evidence",
-  "scope": "Reviewed aggregate measurements for the two backbone families used in the experiment.",
+  "scope": "Reviewed aggregate measurements for the three frozen backbones in Article 3. The public bundle omits raw feature tensors and gated model weights.",
   "models": {
     "DINOv2": {
       "checkpoint": "dinov2_vits14",
@@ -15,14 +15,44 @@
         "11": {"retrieval": 0.725, "ari": 0.40552, "boundary_f1": 0.742312, "grouping_stability": 0.888689}
       },
       "typed_relationship_selected": {
+        "selection": "post-hoc best-observed base-scene diagnostic macro F1 over blocks 2, 5 and 11",
         "layer": 11,
         "node_recall": 0.8,
         "adjacent_f1": 0.340426,
         "near_f1": 0.166667,
-        "embedding_similar_f1": 0.0,
+        "embedding_similarity_diagnostic_f1": 0.0,
         "macro_f1": 0.169031
       },
       "realistic_candidate_regions": {"2": 12, "5": 8, "11": 10}
+    },
+    "DINOv3": {
+      "checkpoint": "facebook/dinov3-vits16-pretrain-lvd1689m",
+      "revision": "114c1379950215c8b35dfcd4e90a5c251dde0d32",
+      "license": "DINOv3 License",
+      "grid": [28, 28],
+      "feature_dimension": 384,
+      "layers": {
+        "2": {"retrieval": 0.616667, "ari": 0.536898, "boundary_f1": 0.853504, "grouping_stability": 0.87595},
+        "5": {"retrieval": 0.683333, "ari": 0.562904, "boundary_f1": 0.799006, "grouping_stability": 0.848584},
+        "11": {"retrieval": 0.866667, "ari": 0.363721, "boundary_f1": 0.771994, "grouping_stability": 0.843339}
+      },
+      "hero_query": {
+        "region": "tower-a",
+        "query_patch_id": 172,
+        "query_source_box": [64, 96, 80, 112],
+        "retrieval_k": 12,
+        "precision_by_layer": {"2": 0.416667, "5": 0.583333, "11": 0.833333}
+      },
+      "typed_relationship_selected": {
+        "selection": "post-hoc best-observed base-scene diagnostic macro F1 over blocks 2, 5 and 11",
+        "layer": 5,
+        "node_recall": 0.6,
+        "adjacent_f1": 0.388889,
+        "near_f1": 0.0,
+        "embedding_similarity_diagnostic_f1": 0.0,
+        "macro_f1": 0.12963
+      },
+      "realistic_candidate_regions": {"2": 9, "5": 6, "11": 10}
     },
     "SigLIP 2": {
       "checkpoint": "google/siglip2-base-patch16-naflex",
@@ -36,11 +66,12 @@
         "11": {"retrieval": 0.625, "ari": 0.177132, "boundary_f1": 0.607438, "grouping_stability": 0.488244}
       },
       "typed_relationship_selected": {
+        "selection": "post-hoc best-observed base-scene diagnostic macro F1 over blocks 2, 5 and 11",
         "layer": 5,
         "node_recall": 0.7,
         "adjacent_f1": 0.416667,
         "near_f1": 0.166667,
-        "embedding_similar_f1": 0.0,
+        "embedding_similarity_diagnostic_f1": 0.0,
         "macro_f1": 0.194445
       },
       "realistic_candidate_regions": {"2": 7, "5": 7, "11": 26}
@@ -48,10 +79,19 @@
   },
   "protocol": {
     "controlled_scene": "repository-authored procedural scene, 448x448",
+    "variants": ["base", "colour-shift", "texture-swap", "extra-occlusion"],
     "layers": [2, 5, 11],
+    "retrieval_queries": ["tower-a", "tower-b", "warehouse", "sky", "car"],
+    "retrieval_query_selection": "highest-purity patch within each predeclared truth region at evaluation time",
+    "retrieval_coverage": "coverage-matched to 16/1024 of each realized patch grid (P@16 for 32x32 grids; P@12 for the 28x28 DINOv3 grid)",
     "clustering": "L2-normalized patch features -> per-image PCA-8 -> seeded k-means k=6 -> three spatial-majority passes",
+    "clustering_seeds": [7, 17, 29],
+    "grouping_stability_seed": 17,
+    "fixed_k_boundary": "The originally planned k sweep was not executed; k=6 is a fixed probe, not an optimized segmentation setting.",
+    "patch_truth": "Exact masks are projected to each model patch grid only after candidate construction for ARI, NMI and tolerant boundary metrics.",
     "typed_edges": ["adjacent", "near", "embedding_similar"],
-    "containment": "not evaluated: flat candidate partitions cannot represent hierarchy",
-    "truth_boundary": "exact controlled labels are used only after candidate construction for evaluation"
+    "embedding_similarity_target": "Diagnostic target is the union of the declared same_structure and texture_similar pairs; embedding_similar is the predicted cosine rule, not a semantic ground-truth relation type.",
+    "containment": "unsupported by the flat candidate partition",
+    "truth_boundary": "Exact controlled labels are used only after candidate construction for evaluation."
   }
 }

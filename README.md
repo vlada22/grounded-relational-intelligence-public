@@ -1,45 +1,56 @@
 # Grounded Relational Intelligence
 
-Experiments in turning frozen vision-transformer features into inspectable regions and typed spatial relationships.
+Public, publication-focused distillation of Article 3 in the Grounded Visual Intelligence series.
 
-The third article in the grounded visual intelligence series asks:
-
-> How far can patch features take us from pixels to regions and explicit relationships before the application has to add structure of its own?
+> Can frozen Vision Transformer features be turned into an inspectable spatial representation before we train an explicit segmentation or scene-graph model?
 
 - [Read **From Pixels to Relationships**](ARTICLE.md)
-- [Open the interactive evidence explorer](https://vlada22.github.io/grounded-relational-intelligence-public/)
+- [Open the **Transformer Spatial Explorer**](https://vlada22.github.io/grounded-relational-intelligence-public/)
 
-The central result is simple: **patch features can organize a scene surprisingly well, but useful similarity is not the same thing as a reliable relationship.**
+The central result is deliberately simple: **frozen transformer features contain useful spatial structure, but no single layer wins every probe and similarity does not automatically compose into a reliable semantic relationship.**
 
 ## Experiment
 
-The controlled experiment uses a repository-authored procedural scene and two frozen backbones:
+The controlled comparison uses three frozen backbones:
 
 - DINOv2 ViT-S/14
-- SigLIP 2 base patch16 NaFlex
+- DINOv3 ViT-S/16
+- SigLIP 2 Base Patch/16 NaFlex
 
-Both are inspected at blocks 2, 5, and 11 under the same deterministic probe. The published evidence covers same-region retrieval, cluster alignment, boundary quality, grouping stability, typed relationship recovery, and a qualitative realistic-scene stress test.
+Each is inspected at blocks 2, 5, and 11 under the same deterministic probe across four controlled scene variants. The public evidence covers clean-reference retrieval, cluster alignment, tolerant boundary quality, grouping stability, relationship diagnostics, and one unlabeled realistic-scene stress test.
 
-A few headline results:
+Headline observations:
 
 - DINOv2 retrieval peaks at block 5 (`0.8375`), while clustering and boundary alignment are strongest at block 2.
-- DINOv2 grouping stability is strongest at block 11 (`0.8887`).
-- SigLIP 2 is strongest at block 2 for retrieval (`0.8125`), ARI (`0.6698`), boundary F1 (`0.9291`), and grouping stability (`0.7854`).
-- The selected typed-relationship runs remain difficult: macro F1 is `0.1690` for DINOv2 and `0.1944` for SigLIP 2.
-- The fixed `embedding_similar` rule recovers none of the declared semantic-similarity edges in those selected runs.
+- DINOv3 retrieval peaks at block 11 (`0.866667` P@12), clustering at block 5 (`0.562904` ARI), and boundary alignment at block 2 (`0.853504`).
+- SigLIP 2 is strongest at block 2 for retrieval (`0.8125`), ARI (`0.669834`), and boundary F1 (`0.929080`).
+- At grouping seed `17`, the strongest mean perturbation grouping stability occurs at DINOv2 block 11 (`0.888689`), DINOv3 block 2 (`0.875950`), and SigLIP 2 block 2 (`0.785439`).
+- The compact relationship summary is weak for all three backbones: diagnostic macro F1 remains below `0.20`, and the fixed embedding-cosine diagnostic is `0.0` on every selected run.
 
-These measurements are intended to expose representation trade-offs, not rank the two models.
+These measurements describe this controlled protocol; they are not a model leaderboard.
 
-## Rebuild the figures
+## Public boundary
 
-Requires Python 3.11 or newer. The figure builder uses only the standard library.
+This repository intentionally contains only the material needed for publication, inspection, and deterministic verification:
 
-```bash
-python scripts/validate_public_bundle.py
-python scripts/rebuild_figures.py
-```
+- canonical article text;
+- aggregate reviewed measurements;
+- publication figures;
+- the static public explorer;
+- public validation/tests;
+- model identifiers, revisions, and license references.
 
-`rebuild_figures.py` reads `demo/data/results.json` and rewrites the SVGs in `assets/figures/`.
+It does **not** contain raw feature tensors, foundation-model weights, gated-model runtime bundles, or the private research handoffs. The originating private checkpoint is recorded in [`PUBLICATION_SOURCE.json`](PUBLICATION_SOURCE.json).
+
+## Methodology boundaries
+
+- Reported retrieval P@k uses five predeclared truth regions and the highest-purity patch in each at evaluation time.
+- Exact masks are projected to patch-level evaluation truth only after candidate construction.
+- PCA-8 and `k=6` are fixed probe settings; the originally planned `k` sweep was not executed, so `k=6` is not claimed as optimal.
+- Headline grouping stability uses predeclared seed `17`.
+- Relationship-table layer selection is post-hoc best-observed base-scene diagnostic macro F1, not held-out model selection.
+- `embedding_similar` is a predicted cosine rule. Its diagnostic target combines the declared `same_structure` and `texture_similar` pairs; it is not itself a semantic ground-truth relation type.
+- The realistic scene has no labels and supports descriptive probe behaviour only.
 
 ## Run the explorer locally
 
@@ -49,20 +60,30 @@ python -m http.server 8000
 
 Open `http://localhost:8000/demo/`.
 
-The explorer puts the aggregate measurements next to the controlled scene so model, layer, metric, and source-patch coordinates can be inspected together.
+The explorer is static and performs no foundation-model inference. It uses the aggregate reviewed values in `demo/data/results.json` and preserves the correct 32×32 or 28×28 patch geometry for the selected backbone.
+
+## Validate the public bundle
+
+Requires Python 3.11 or newer.
+
+```bash
+python scripts/validate_public_bundle.py
+python -m pytest
+```
 
 ## Repository layout
 
 ```text
 ARTICLE.md                     canonical Article 03 text
-assets/controlled-scene.svg   procedural controlled scene
-assets/figures/                deterministic publication SVGs
-demo/                          static evidence explorer
-scripts/rebuild_figures.py     regenerate figures from aggregate evidence
+PUBLICATION_SOURCE.json        private-source checkpoint and distillation record
+assets/controlled-scene.svg   public controlled scene
+assets/figures/                publication SVGs
+demo/                          static three-model evidence explorer
 scripts/validate_public_bundle.py
-THIRD_PARTY.md                 model references
+scripts/rebuild_figures.py     aggregate figure helper
+THIRD_PARTY.md                 model references and license boundaries
 ```
 
 ## Model references
 
-The model identifiers and upstream references used for the published experiment are documented in [THIRD_PARTY.md](THIRD_PARTY.md).
+Exact identifiers and upstream license references are documented in [THIRD_PARTY.md](THIRD_PARTY.md).

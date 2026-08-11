@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="560" viewBox="0 0 1440 560">
+<defs>
+  <pattern id="g32" width="13.125" height="13.125" patternUnits="userSpaceOnUse"><path d="M13.125 0H0V13.125" fill="none" stroke="#eef6f3" stroke-opacity=".34" stroke-width=".7"/></pattern>
+  <pattern id="g28" width="15" height="15" patternUnits="userSpaceOnUse"><path d="M15 0H0V15" fill="none" stroke="#eef6f3" stroke-opacity=".34" stroke-width=".7"/></pattern>
+</defs>
+<rect width="1440" height="560" fill="#07161a"/>
+<text x="720" y="48" text-anchor="middle" fill="#eef6f3" font-family="Inter,Arial" font-size="28" font-weight="700">One source image, model-specific patch geometry</text>
+<text x="235" y="92" text-anchor="middle" fill="#dce9e6" font-family="Inter,Arial" font-size="18">Controlled source scene</text>
+<text x="720" y="92" text-anchor="middle" fill="#dce9e6" font-family="Inter,Arial" font-size="18">DINOv2 / SigLIP 2 · 32 × 32</text>
+<text x="1205" y="92" text-anchor="middle" fill="#dce9e6" font-family="Inter,Arial" font-size="18">DINOv3 · 28 × 28</text>
+<image href="../controlled-scene.svg" x="25" y="112" width="420" height="420" preserveAspectRatio="none"/>
+<image href="../controlled-scene.svg" x="510" y="112" width="420" height="420" preserveAspectRatio="none"/>
+<rect x="510" y="112" width="420" height="420" fill="url(#g32)"/>
+<image href="../controlled-scene.svg" x="995" y="112" width="420" height="420" preserveAspectRatio="none"/>
+<rect x="995" y="112" width="420" height="420" fill="url(#g28)"/>
+<rect x="25" y="112" width="420" height="420" fill="none" stroke="#254146"/><rect x="510" y="112" width="420" height="420" fill="none" stroke="#254146"/><rect x="995" y="112" width="420" height="420" fill="none" stroke="#254146"/>
+<text x="720" y="552" text-anchor="middle" fill="#9bb0ad" font-family="Inter,Arial" font-size="13">448 × 448 repository-authored controlled scene. Source mapping is part of the artifact contract; patch IDs are never assumed interchangeable across grids.</text>
+</svg>
