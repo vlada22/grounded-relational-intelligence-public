@@ -1,0 +1,57 @@
+{
+  "schema_version": 1,
+  "artifact_kind": "public-reviewed-aggregate-evidence",
+  "scope": "Aggregate measurements from openly licensed public backbones only. No model weights or raw feature tensors are distributed.",
+  "models": {
+    "DINOv2": {
+      "checkpoint": "dinov2_vits14",
+      "revision": "7764ea0f912e53c92e82eb78a2a1631e92725fc8",
+      "license": "Apache-2.0",
+      "grid": [32, 32],
+      "feature_dimension": 384,
+      "layers": {
+        "2": {"retrieval": 0.8, "ari": 0.532343, "boundary_f1": 0.831836, "grouping_stability": 0.700242},
+        "5": {"retrieval": 0.8375, "ari": 0.501077, "boundary_f1": 0.764508, "grouping_stability": 0.701646},
+        "11": {"retrieval": 0.725, "ari": 0.40552, "boundary_f1": 0.742312, "grouping_stability": 0.888689}
+      },
+      "typed_relationship_selected": {
+        "layer": 11,
+        "node_recall": 0.8,
+        "adjacent_f1": 0.340426,
+        "near_f1": 0.166667,
+        "embedding_similar_f1": 0.0,
+        "macro_f1": 0.169031
+      },
+      "realistic_candidate_regions": {"2": 12, "5": 8, "11": 10}
+    },
+    "SigLIP 2": {
+      "checkpoint": "google/siglip2-base-patch16-naflex",
+      "revision": "b53b807d3a2d5e2b3911292f2d69e5341cdc064c",
+      "license": "Apache-2.0",
+      "grid": [32, 32],
+      "feature_dimension": 768,
+      "layers": {
+        "2": {"retrieval": 0.8125, "ari": 0.669834, "boundary_f1": 0.92908, "grouping_stability": 0.785439},
+        "5": {"retrieval": 0.7375, "ari": 0.370083, "boundary_f1": 0.740231, "grouping_stability": 0.628616},
+        "11": {"retrieval": 0.625, "ari": 0.177132, "boundary_f1": 0.607438, "grouping_stability": 0.488244}
+      },
+      "typed_relationship_selected": {
+        "layer": 5,
+        "node_recall": 0.7,
+        "adjacent_f1": 0.416667,
+        "near_f1": 0.166667,
+        "embedding_similar_f1": 0.0,
+        "macro_f1": 0.194445
+      },
+      "realistic_candidate_regions": {"2": 7, "5": 7, "11": 26}
+    }
+  },
+  "protocol": {
+    "controlled_scene": "repository-authored procedural scene, 448x448",
+    "layers": [2, 5, 11],
+    "clustering": "L2-normalized patch features -> per-image PCA-8 -> seeded k-means k=6 -> three spatial-majority passes",
+    "typed_edges": ["adjacent", "near", "embedding_similar"],
+    "containment": "not evaluated: flat candidate partitions cannot represent hierarchy",
+    "truth_boundary": "exact controlled labels are used only after candidate construction for evaluation"
+  }
+}
