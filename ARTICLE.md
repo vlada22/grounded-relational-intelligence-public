@@ -23,7 +23,7 @@ The main result is worth stating before the methodology:
 
 > **Frozen transformer features do contain useful spatial organization. But no single layer wins every spatial probe, and useful similarity does not automatically compose into a reliable semantic relationship graph.**
 
-![One selected DINOv3 Tower A patch changes its neighbourhood with depth.](assets/figures/dinov3-tower-a-similarity-depth.svg)
+![One selected DINOv3 Tower A patch changes its neighbourhood with depth.](assets/figures/dinov3-tower-a-similarity-depth.png)
 
 *Figure 1. The same source query through DINOv3 blocks 2, 5, and 11. Same-region retrieval improves strongly with depth for this patch, while the strongest global grouping metric occurs earlier. The useful layer depends on the property being measured.*
 
@@ -53,7 +53,7 @@ The public repository contains aggregate evidence and publication artifacts, not
 
 A Vision Transformer sees a token sequence, not the image grid we see. DINOv2 and SigLIP 2 use a 32 × 32 grid in this experiment. DINOv3 uses 28 × 28. A similarity value becomes spatial evidence only after its token is mapped back to the correct source pixels.
 
-![One controlled source image under the exact 32 × 32 and 28 × 28 model patch geometries.](assets/figures/source-patch-grids.svg)
+![One controlled source image under the exact 32 × 32 and 28 × 28 model patch geometries.](assets/figures/source-patch-grids.png)
 
 *Figure 2. The same 448 × 448 source scene under the patch grids used by DINOv2/SigLIP 2 and DINOv3. Source-coordinate mapping is part of the evidence contract, not a display convenience.*
 
@@ -91,7 +91,7 @@ A blanket “take the final layer” rule would miss the strongest grouping dept
 
 Stability chooses a different depth again. At the predeclared grouping seed `17`, mean grouping stability across the three perturbations is strongest at DINOv2 block 11 (`0.888689`), DINOv3 block 2 (`0.875950`), and SigLIP 2 block 2 (`0.785439`).
 
-![DINOv2 grouping stability under the controlled appearance and occlusion perturbations.](assets/figures/dinov2-perturbation-stability.svg)
+![DINOv2 grouping stability under the controlled appearance and occlusion perturbations.](assets/figures/dinov2-perturbation-stability.png)
 
 *Figure 3. Grouping stability can prefer a different depth from retrieval or boundary alignment. One robustness number would hide that trade-off.*
 
@@ -109,7 +109,7 @@ Only afterward are the exact masks reduced to patch-level evaluation truth for A
 
 For DINOv3 block 5, the seed-17 partition reaches ARI `0.542024` and tolerant boundary F1 `0.809851`; the three-seed mean ARI is `0.562904`.
 
-![DINOv3 block 5 candidate partition with evaluation-only alignment metrics.](assets/figures/dinov3-block5-cluster-evaluation.svg)
+![DINOv3 block 5 candidate partition with evaluation-only alignment metrics.](assets/figures/dinov3-block5-cluster-evaluation.png)
 
 *Figure 4. Candidate regions are built without labels. Exact controlled-scene masks enter only afterward and are projected to the patch grid for alignment metrics.*
 
@@ -141,7 +141,7 @@ For compact comparison, each row below reports the **base-scene layer with the h
 
 At the fixed region-cosine threshold of `0.88`, none of those best-observed runs recovers either diagnostic target pair.
 
-![Typed relationship recovery across models and depth.](assets/figures/three-model-typed-relationship-f1.svg)
+![Typed relationship recovery across models and depth.](assets/figures/three-model-typed-relationship-f1.png)
 
 *Figure 5. The candidate graph keeps adjacency, proximity, and embedding cosine separate. The fixed embedding-cosine diagnostic fails on the best-observed base run for every backbone.*
 
@@ -169,7 +169,7 @@ The same three models and three depths produced nine reviewed observations. Appl
 
 The SigLIP 2 shift is especially visible under this probe. At block 5, one connected component covers `0.863` of patches; at block 11 the partition fragments and the largest component falls to `0.231`.
 
-![Realistic scene fixed-probe partition diagnostics.](assets/figures/realistic-scene-cluster-structure.svg)
+![Realistic scene fixed-probe partition diagnostics.](assets/figures/realistic-scene-cluster-structure.png)
 
 *Figure 6. Descriptive partition behaviour on the unlabeled realistic scene. These values describe the fixed probe; they are not semantic accuracy metrics.*
 
