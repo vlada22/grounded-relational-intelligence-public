@@ -7,65 +7,58 @@
 - [GitHub repository](https://github.com/vlada22/grounded-relational-intelligence-public)
 - [Interactive evidence explorer](https://vlada22.github.io/grounded-relational-intelligence-public/)
 
-The first two experiments in this series taught me to be suspicious of shortcuts.
+The first two experiments in this series left me with a habit: whenever a visual system gives me something that *looks* meaningful, I try to separate what the model actually produced from what I am tempted to read into it.
 
-In the first, the shortcut was language: a model could describe a video fluently, but measurable answers became much more trustworthy once observations were turned into explicit evidence and deterministic tools did the counting and timing.
+In the first article, that meant separating fluent video descriptions from measurable evidence. In the second, it meant separating a plausible depth map from geometry I would actually trust for distance and size.
 
-In the second, the shortcut was visual plausibility: a depth map could look coherent while the geometry was still wrong enough to make object sizes and distances unreliable.
+For this third experiment, the tempting shortcut was feature space.
 
-For the third experiment, I wanted to push the same idea one level deeper.
+Modern vision transformers produce dense patch embeddings that are genuinely useful. Click one patch and nearby points in feature space often light up in sensible places. Repeated textures gather together. Object interiors can look coherent. Some layers preserve crisp boundaries; others become more invariant.
 
-Modern vision transformers produce dense patch features that are remarkably useful. Nearby patches often organize together. Similar structures often become close in feature space. Intermediate layers can preserve boundaries that later layers smooth away.
+It is very easy to look at that and think: *the model already understands how the scene is organized.*
 
-That makes it tempting to say that the model has already discovered the *relationships* in a scene.
+I wanted to find out how far that statement really goes.
 
-I wanted to test that temptation.
-
-> If a frozen vision transformer gives us useful patch features, how far can we go from **pixels**, to **regions**, to an explicit **relationship graph** before we start inventing structure the model did not actually give us?
+> If a frozen vision transformer gives us useful patch features, how far can we move from **pixels**, to **regions**, to an explicit **relationship graph** before the application has to add new structure of its own?
 
 That question became **Grounded Relational Intelligence**.
 
-The main result surprised me less because the models failed than because of *where* they failed:
+The result I keep coming back to is simple:
 
 > **Patch features can organize a scene surprisingly well. But useful similarity is not the same thing as a reliable relationship.**
 
-That distinction became the thread running through the whole experiment.
+That gap between *evidence* and *claim* ended up being much more interesting than any single score.
 
 ![The controlled scene used to test feature similarity, clustering, and spatial relationships.](assets/controlled-scene.svg)
 
-*Figure 1. A deliberately simple procedural scene with repeated structures, a texture trap, occlusion, containment, adjacency, and nearby objects. Ground-truth labels exist only for evaluation.*
+*Figure 1. A deliberately simple procedural scene with repeated structures, a texture trap, occlusion, containment, adjacency, and nearby objects. Ground-truth labels are used only for evaluation.*
 
-## Why start with an artificial scene?
+## I started with a scene designed to be annoying
 
-Because real images are too forgiving when the question is vague.
+Real images are wonderful for demos and terrible for catching your own assumptions.
 
-If I show a transformer a street scene and its features look coherent, it is very easy to convince myself that the representation is meaningful. But unless I know the scene exactly, I cannot tell whether a cluster boundary is correct, whether two similar regions should actually be related, or whether a visually convincing grouping is simply a texture shortcut.
+If I show a transformer a street scene and the feature map looks coherent, I can usually tell myself a convincing story about why. But without exact scene truth, it is hard to know whether a cluster boundary is genuinely useful, whether two similar regions should be related, or whether the model is simply responding to colour and texture.
 
-So I built a 448 × 448 procedural scene with several deliberate traps:
+So I built a 448 × 448 procedural scene with several deliberate traps.
 
-- two towers with related structure but different appearance;
-- a warehouse sharing a repeated texture pattern with one tower;
-- a car partially hidden behind a foreground barrier;
-- regions that are adjacent;
-- regions that are merely near;
-- and a door geometrically contained by the warehouse.
+There are two tower-like structures that should make instance similarity tempting. A warehouse shares a repeated stripe pattern with one tower, giving the representation an easy texture shortcut. A car is partially hidden by a foreground barrier. Some regions touch, some are merely close, and a warehouse door is geometrically contained by the larger building.
 
-The scene comes with exact masks and a small relationship vocabulary. But those labels are kept out of feature extraction, PCA, clustering, and candidate graph construction. They enter only afterward, when the candidates are evaluated.
+The scene is intentionally a little artificial. That is the point. Every important region and relationship is known exactly, so the experiment can be wrong in ways I can actually measure.
 
-That separation matters. Otherwise it would be too easy to build the answer into the representation and then congratulate the representation for finding it.
+The labels stay out of feature extraction, PCA, clustering, and candidate graph construction. They appear only afterward, when the candidates are evaluated.
 
-## Two public backbones, one fixed probe
+That one rule matters a lot. Otherwise it would be too easy to bake the answer into the pipeline and then congratulate the pipeline for discovering it.
 
-For the public experiment I use two openly licensed frozen backbones:
+## Two backbones, one deliberately boring probe
 
-- **DINOv2 ViT-S/14**;
-- **SigLIP 2 base patch16 NaFlex**.
+I used two frozen vision backbones:
 
-Both are used only as feature extractors. No fine-tuning is involved.
+- **DINOv2 ViT-S/14**
+- **SigLIP 2 base patch16 NaFlex**
 
-I also ran an additional separately licensed backbone during the private research phase. It reinforced the same qualitative conclusion about depth sensitivity, but I intentionally keep that model, its access path, its raw features, and its derived interactive artifacts out of this public repository. The public evidence here stands on the two open backbones above.
+Neither model is fine-tuned for this experiment. I wanted the downstream logic to stay almost boring so that changes in the result could be traced back to changes in the representation.
 
-For each model I inspect blocks 2, 5, and 11. The candidate-region probe is deliberately plain:
+For each model I inspected blocks 2, 5, and 11, then applied the same candidate-region probe:
 
 ```text
 frozen patch features
@@ -76,42 +69,44 @@ frozen patch features
   -> connected components
 ```
 
-The point was not to optimize a segmentation system. The point was to hold the downstream probe still and watch what changes as the representation changes.
+This is not meant to be a competitive segmentation method. It is a fixed measuring instrument.
 
-The evaluation asks four different questions:
+I then asked four separate questions:
 
 1. **Retrieval:** if I choose a clean patch inside a region, do its nearest neighbors come from the same region?
 2. **Clustering:** does the feature partition line up with the exact scene regions?
 3. **Boundary quality:** do candidate boundaries fall near the known region boundaries?
-4. **Grouping stability:** when the scene appearance changes, does the discrete partition stay similar?
+4. **Grouping stability:** when the scene appearance changes, does the discrete partition remain similar?
 
-Those are related questions, but they are not the same question.
+At first glance those sound like different ways of asking the same thing.
 
-That turned out to be the first important result.
+They are not.
 
-## There is no single “best layer”
+That became the first useful result.
 
-I expected depth to matter. I did not expect it to matter in such different ways for different measurements.
+## There is no layer called “spatial intelligence”
+
+I expected depth to matter. What surprised me was how differently it mattered depending on what I measured.
 
 For DINOv2, same-region retrieval is strongest at block 5:
 
-- block 2: `0.8000`;
-- block 5: **`0.8375`**;
-- block 11: `0.7250`.
+- block 2: `0.8000`
+- block 5: **`0.8375`**
+- block 11: `0.7250`
 
 But clustering alignment is strongest earlier:
 
-- block 2 ARI: **`0.5323`**;
-- block 5 ARI: `0.5011`;
-- block 11 ARI: `0.4055`.
+- block 2 ARI: **`0.5323`**
+- block 5 ARI: `0.5011`
+- block 11 ARI: `0.4055`
 
-Boundary quality follows the same early-layer pattern, while grouping stability under the controlled perturbations is strongest at the final probed block: **`0.8887`** at block 11.
+Boundary quality follows the same early-layer pattern. Grouping stability goes the other way and is strongest at block 11: **`0.8887`**.
 
 ![Same-region retrieval for DINOv2 and SigLIP 2 across three transformer depths.](assets/figures/retrieval-by-depth.svg)
 
-*Figure 2. Retrieval changes with depth, but the direction depends on the backbone. A deeper representation is not automatically a better spatial representation.*
+*Figure 2. Retrieval changes with depth, but the direction depends on the backbone. Deeper does not automatically mean more spatially useful.*
 
-SigLIP 2 tells a different story. On the base scene, its earliest probed block is strongest on all three direct spatial-alignment measures:
+SigLIP 2 tells a different story. On the same base scene, its earliest probed block is strongest on every direct spatial-alignment measure I tracked:
 
 | Metric | Block 2 | Block 5 | Block 11 |
 | --- | ---: | ---: | ---: |
@@ -120,164 +115,164 @@ SigLIP 2 tells a different story. On the base scene, its earliest probed block i
 | Boundary F1 | **0.9291** | 0.7402 | 0.6074 |
 | Grouping stability | **0.7854** | 0.6286 | 0.4882 |
 
-The deeper features are not “worse” in some universal sense. They are optimized by training to become useful for the model's objectives. The point is narrower: **the depth that is useful for one spatial question may not be the depth that is useful for another.**
+That does not make the later features “bad.” They are being transformed toward the objectives the model was trained to solve. The practical lesson is narrower and more useful:
+
+**The representation depth that is useful for one spatial question may be the wrong depth for another.**
 
 ![Region alignment measured by Adjusted Rand Index across depth.](assets/figures/clustering-by-depth.svg)
 
-*Figure 3. The fixed clustering probe exposes different depth profiles across the two backbones. The values are controlled-probe measurements, not a model leaderboard.*
+*Figure 3. The same fixed clustering probe exposes very different depth profiles across the two backbones. These are controlled-probe measurements, not a model leaderboard.*
 
-This sounds obvious when written down. In practice, it is easy to forget. A foundation model often gets treated as one representation, even though a transformer is a sequence of representations.
+This sounds obvious after the fact, but I think it is easy to forget in system design. We often talk about “using DINO features” or “using SigLIP features” as though a transformer exposes one representation.
 
-If the application cares about boundaries, retrieval, robustness, or relationships, “which model?” is incomplete without “which layer, for which claim?”
+It exposes a sequence of representations.
 
-## The towers exposed the gap between similarity and identity
+If the next stage cares about boundaries, retrieval, grouping stability, or relationships, the real design question is not just *which model?* It is *which layer, for which claim?*
 
-The controlled scene contains two tower-like structures on purpose.
+## The two towers were the most revealing failure
 
-If representation similarity were already equivalent to object identity, a query on Tower A should reliably retrieve Tower B as the corresponding structure.
+I put two tower-like structures in the scene because I wanted to tempt the representation into something stronger than local similarity.
+
+If feature similarity were already close to object identity, a query on Tower A should consistently pull Tower B into the same semantic neighborhood.
 
 That is not what happened.
 
-Some layers retrieved same-region patches extremely well while still failing to connect the two separate towers. In other words, the representation could be excellent at answering:
+Some layers were very good at retrieving patches from the same tower while still doing a poor job of connecting the two separate towers as corresponding instances.
 
-> “Which patches look like this patch in context?”
+The representation could answer something like:
+
+> “Which patches look like this patch in this context?”
 
 without answering:
 
 > “Which other object is another instance of the same thing?”
 
-That distinction is one of the most useful lessons from this experiment.
+That distinction became one of the clearest lessons in the project.
 
 Similarity is continuous evidence. Identity is a semantic claim.
 
-The first can support the second, but it does not define it.
+The first can support the second. It cannot quietly replace it.
 
-## Then I tried to build an actual relationship graph
+## Then I tried to make the graph explicit
 
-A region map is useful, but the goal of this article was not segmentation. I wanted a representation that could say something explicit about how candidate regions relate.
+A region map was never the final goal. I wanted to know what happened when the system had to state actual relationships between candidate regions.
 
-So after candidate regions were built, I added separate deterministic edge rules for:
+So after candidate regions were built, I added separate deterministic rules for three edge types:
 
-- `adjacent` — components touch on the patch grid;
-- `near` — components are within a fixed source-image distance without touching;
-- `embedding_similar` — mean region features exceed a fixed cosine threshold.
+- `adjacent` — components touch on the patch grid
+- `near` — components are within a fixed source-image distance without touching
+- `embedding_similar` — mean region features exceed a fixed cosine threshold
 
 Only after those edges existed did the exact scene masks enter for node matching and scoring.
 
-This is where the experiment became more interesting.
+This is where the neat story fell apart, in a useful way.
 
-The best selected public runs were weak:
+The best selected runs were weak:
 
 | Model | Selected layer | Node recall | Adjacent F1 | Near F1 | Embedding-similar F1 | Macro F1 |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: |
 | DINOv2 | 11 | 0.80 | 0.340 | 0.167 | **0.000** | 0.169 |
 | SigLIP 2 | 5 | 0.70 | 0.417 | 0.167 | **0.000** | 0.194 |
 
-![Typed relationship F1 for the selected public runs.](assets/figures/typed-relationships.svg)
+![Typed relationship F1 for the selected runs.](assets/figures/typed-relationships.svg)
 
-*Figure 4. Region recovery and relationship recovery are separate problems. The fixed embedding-similarity edge rule recovers none of the declared semantic-similarity edges in the selected runs.*
+*Figure 4. Recovering useful regions and recovering useful relationships are separate problems. The fixed embedding-similarity rule recovers none of the declared semantic-similarity edges in the selected runs.*
 
-The failure is useful because it prevents a much more dangerous shortcut: collapsing everything into a generic `related` score.
+I actually like this failure because it makes a common shortcut harder to justify.
 
-If adjacency works sometimes, proximity works differently, and embedding similarity fails at the fixed threshold, averaging them into one relation number would make the graph look cleaner while making it harder to understand.
+It would be easy to collapse adjacency, distance, and embedding similarity into one generic `related` score. The graph would look cleaner. It would also become much harder to say what any edge means.
 
-I would rather have an awkward graph whose edge types can fail independently than a polished graph whose semantics are impossible to audit.
+If adjacency works differently from proximity, and embedding similarity can fail entirely at a fixed threshold, then those relationships should remain separate enough to fail independently.
 
-## One relationship could not even be represented
+A graph with awkward, inspectable failures is more useful to me than a polished graph with ambiguous semantics.
 
-The scene also contains a warehouse door that is geometrically contained by the warehouse.
+## One relationship was missing before scoring even began
 
-The flat clustering representation cannot express that relationship at all.
+The warehouse door exposed a different problem.
 
-Every patch belongs to one disjoint component. A component can sit beside another component, but it cannot simultaneously be a child region nested inside a parent region.
+It is geometrically contained by the warehouse, but the flat candidate partition cannot represent containment at all. Every patch belongs to one disjoint component. A component can sit next to another component; it cannot also live *inside* a parent component as part of a hierarchy.
 
-So I did not report a containment score.
+So there is no meaningful containment F1 to report.
 
-I reported containment as **unsupported by the representation**.
+The representation simply does not have the right shape for that claim.
 
-That may be the most mundane result in the article, but I think it is an important engineering habit. When the data structure cannot express a claim, changing the threshold is not the solution. The representation itself has to change—probably toward hierarchical proposals or overlapping regions.
+This is a small result, but I think it is an important engineering habit: **a threshold cannot repair a missing data structure.**
 
-## A realistic scene made the same weakness easier to see
+If the application needs containment, parts, or nested regions, the representation has to become hierarchical or overlapping before the relationship can be measured honestly.
 
-After the controlled evaluation, I ran the same fixed probe on a more realistic industrial-yard scene with repeated cabinets, depth variation, corrugated surfaces, fencing, vegetation, reflections, shadows, and partial occlusion.
+## A realistic scene made the depth effect harder to ignore
 
-There are no labels or masks for this scene, so I do not report accuracy.
+The controlled scene tells me when the pipeline is wrong, but it does not look much like the visual mess of a real environment.
 
-I only inspect how the candidate partition behaves.
+So I ran the same fixed probe on a more realistic industrial-yard scene with repeated cabinets, corrugated surfaces, fencing, vegetation, reflections, shadows, depth variation, and partial occlusion.
 
-For DINOv2, the connected candidate-region count changes from **12 → 8 → 10** across blocks 2, 5, and 11.
+There is no exact scene truth here, so I do not turn it into an accuracy test. I only look at how the candidate partition changes.
 
-For SigLIP 2, it changes from **7 → 7 → 26**.
+For DINOv2, the connected candidate-region count moves **12 → 8 → 10** across blocks 2, 5, and 11.
+
+For SigLIP 2, it moves **7 → 7 → 26**.
 
 ![Candidate-region counts on the realistic qualitative stress test.](assets/figures/realistic-candidate-regions.svg)
 
-*Figure 5. The same fixed probe changes character with representation depth on a cluttered scene. These counts are descriptive, not accuracy measurements.*
+*Figure 5. The same fixed probe changes character with representation depth on a cluttered scene. The counts are descriptive rather than accuracy measurements.*
 
-The exact numbers are not the conclusion. The important part is that depth changes the *kind* of partition the downstream system receives.
+The exact counts are not the point. What matters is that the downstream system receives a noticeably different kind of partition depending on where the features come from.
 
-That matters if the next stage expects stable objects, persistent regions, or a graph whose nodes have consistent meaning. A pipeline can be deterministic after the transformer and still be unstable because its input representation changes character with depth.
+That matters if the next stage expects stable objects, persistent regions, or graph nodes with reasonably consistent meaning. The code after the transformer can be completely deterministic and still inherit instability from the representation it receives.
 
-## The public explorer is intentionally smaller than the research workspace
+## I built the explorer because tables hide the feel of the trade-off
 
-The [interactive evidence explorer](https://vlada22.github.io/grounded-relational-intelligence-public/) is a static public artifact.
+The [interactive evidence explorer](https://vlada22.github.io/grounded-relational-intelligence-public/) puts the controlled measurements next to the source scene.
 
-It contains no model weights and performs no model inference. Instead, it lets you switch between DINOv2 and SigLIP 2, move across the three probed layers, compare retrieval, clustering, boundary, and stability measurements, inspect the typed-edge result, and click the controlled image to see the exact source patch coordinates.
+You can switch between DINOv2 and SigLIP 2, move across blocks 2, 5, and 11, compare retrieval, clustering, boundary quality, and grouping stability, and inspect the selected typed-relationship result.
 
-That last detail matters more than it sounds.
+You can also click the controlled image and see the exact 32 × 32 source patch coordinates.
 
-A patch representation becomes much easier to reason about when every selected patch can be mapped back to an exact source box. The model may operate in embedding space, but the evidence should remain anchored to pixels.
+That source mapping is intentionally simple, but I think it is important. Feature-space analysis becomes easier to reason about when every selected patch still has an unambiguous path back to pixels.
 
-The public repository is deliberately narrower than the private research environment. It contains the procedural scene, reviewed aggregate measurements, deterministic figure builders, the static explorer, and validation tests. It does **not** contain gated-model workflows, credentials, model weights, private feature archives, or licensed research materials.
+The explorer is not meant to make the result look more sophisticated. It is there to make the trade-offs easier to inspect.
 
-That is not a loss of reproducibility. It is a clearer definition of what this public artifact promises to reproduce.
+## What I think this experiment actually shows
 
-## What this experiment shows—and what it does not
+The strongest result is not that one transformer or one layer won.
 
-For me, the strongest result is not that one transformer or one layer won.
+It is that the path from features to relationships contains several different problems that are easy to collapse into one:
 
-It is that the path from features to relationships has several distinct failure points:
+1. a patch representation can be locally useful without being instance-aware
+2. a clustering probe can recover some regions and miss others
+3. region errors become node errors before relationship scoring even begins
+4. different relationship types need different evidence and different rules
+5. some relationships require a richer representation than a flat partition can express
 
-1. a patch representation may be locally useful but not instance-aware;
-2. a clustering probe may recover some regions but miss others;
-3. region recovery and edge recovery compound their errors;
-4. different relationship types require different rules;
-5. some relationships require a richer representation than a flat partition can provide.
+Feature depth is part of that design, not a harmless implementation detail.
 
-The experiment also shows that feature depth is a design choice, not a harmless implementation detail.
+The limits are just as important. This is a small controlled experiment, not a segmentation benchmark or a general scene-graph benchmark. The realistic scene is qualitative. The graph rules are intentionally simple. I did not train a proposal network, tune thresholds over a large held-out dataset, or test thousands of scenes.
 
-What it does **not** show is equally important.
+Those would be sensible next steps if the goal were state-of-the-art relationship detection.
 
-This is not a segmentation benchmark. It is not a model leaderboard. The controlled scene is small and synthetic. The realistic scene has no ground truth. The typed graph is intentionally simple. I did not train a proposal network, calibrate thresholds on a held-out dataset, or test long-range scene graphs across a large corpus.
+My goal here was different: I wanted to find the boundary between what a frozen representation gives us and what the application still has to construct explicitly.
 
-Those would be reasonable next steps if the goal were state-of-the-art relationship detection.
+## The larger pattern across the series
 
-That was not my goal here.
+After three experiments, I see the same pattern showing up at different levels.
 
-My goal was to find the boundary between what a frozen representation gives us and what an application still has to construct explicitly.
+In video, a perception model can observe an object, but a deterministic tool should still own a measurable event such as a boundary crossing.
 
-## The larger idea
+In 3D reconstruction, a depth model can estimate geometry, but camera conventions, scale, visibility, and measurement logic still decide which distances deserve to be trusted.
 
-Across the first three articles, the pattern is becoming clearer to me.
+Here, a transformer can organize patches, but the application still has to decide what becomes a region, what kind of relationship an edge represents, and what evidence is strong enough to justify that edge.
 
-A model can observe a useful signal without owning the final claim.
-
-In video, a segmentation model can observe an object, but a deterministic tool should still measure when it crosses a boundary.
-
-In 3D reconstruction, a depth model can estimate geometry, but camera conventions, scale, visibility, and deterministic measurement still decide what distances can be trusted.
-
-Here, a transformer can organize patches, but the application still has to decide what counts as a region, what kind of relationship an edge represents, and what evidence is strong enough to justify it.
-
-That leads to a principle I expect to keep using:
+That leads to the principle I am taking into the next article:
 
 > **Similarity is evidence. A relationship is a claim. Keep the two separate until the claim can be tested.**
 
-The distinction may feel conservative, but it makes visual systems easier to debug, easier to explain, and much harder to fool with an attractive visualization.
+The distinction is conservative on purpose. It makes the system easier to debug, easier to explain, and less likely to turn an attractive visualization into an unsupported conclusion.
 
-The next step in this series is temporal: once regions and relationships change from frame to frame, how do we decide whether a relationship persisted, disappeared, or was never observable in the first place?
+The next step is temporal. Once regions and relationships change from frame to frame, the question becomes: did a relationship persist, disappear, become occluded, or was it never observable in the first place?
 
-That is where static scene structure starts becoming memory.
+That is where a static scene graph starts turning into memory.
 
-I have published the safe public code, aggregate evidence, figures, and [interactive explorer](https://vlada22.github.io/grounded-relational-intelligence-public/) in the [Grounded Relational Intelligence public repository](https://github.com/vlada22/grounded-relational-intelligence-public).
+I have published the code, aggregate evidence, figures, and [interactive explorer](https://vlada22.github.io/grounded-relational-intelligence-public/) in the [Grounded Relational Intelligence repository](https://github.com/vlada22/grounded-relational-intelligence-public).
 
 Where would you draw the line between a useful visual similarity and a relationship you would trust a system to state as fact?
 
@@ -285,7 +280,7 @@ Where would you draw the line between a useful visual similarity and a relations
 
 ### Reproducibility note
 
-This public repository intentionally reproduces the **public evidence layer**, not every private inference experiment. It contains a deterministic procedural scene, reviewed aggregate measurements from DINOv2 and SigLIP 2, scripts that regenerate the publication SVGs, a dependency-free static explorer, and tests that fail if gated-model or credential markers appear in the public tree. No model weights or raw full-dimensional feature archives are distributed.
+The repository contains the procedural controlled scene, reviewed aggregate measurements for DINOv2 and SigLIP 2, deterministic scripts that regenerate the publication figures, the static evidence explorer, and validation tests for the published artifact structure. The figures are rebuilt directly from `demo/data/results.json`.
 
 ### References
 
