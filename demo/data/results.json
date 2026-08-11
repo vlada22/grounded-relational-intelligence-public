@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
-  "artifact_kind": "public-reviewed-aggregate-evidence",
-  "scope": "Aggregate measurements from openly licensed public backbones only. No model weights or raw feature tensors are distributed.",
+  "artifact_kind": "reviewed-aggregate-evidence",
+  "scope": "Reviewed aggregate measurements for the two backbone families used in the experiment.",
   "models": {
     "DINOv2": {
       "checkpoint": "dinov2_vits14",
