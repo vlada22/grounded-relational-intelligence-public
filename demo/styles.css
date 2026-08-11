@@ -66,7 +66,7 @@ h1 em { color: var(--amber); font-family: Georgia, "Times New Roman", serif; fon
 .toolbar { display: flex; gap: 1rem; align-items: end; padding: 1rem; border-bottom: 1px solid var(--line); background: rgba(8, 17, 21, .34); }
 label { min-width: 170px; color: var(--muted); font-size: .62rem; letter-spacing: .025em; }
 select { display: block; width: 100%; margin-top: .35rem; padding: .62rem .72rem; color: #d4dfdd; background: #091419; border: 1px solid var(--line); border-radius: 6px; outline: none; }
-select:focus-visible { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(112,224,189,.11); }
+select:focus-visible { border-color: var(--accent); box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 12%, transparent); }
 .check { margin-left: auto; min-width: auto; white-space: nowrap; padding-bottom: .55rem; }
 .check input { accent-color: var(--accent); }
 .scene { position: relative; aspect-ratio: 1; overflow: hidden; outline: none; background: #071014; }
@@ -88,12 +88,12 @@ select:focus-visible { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(1
 .chart-card, .relationship-card { padding: 1.3rem; border-bottom: 1px solid var(--line); }
 .card-head { min-height: 60px; display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; }
 .card-head h3, .relationship-card h3 { margin: .58rem 0 0; font: 400 1.46rem Georgia, "Times New Roman", serif; }
-.model-chip { flex: 0 0 auto; min-width: 78px; padding: .42rem .58rem; border: 1px solid rgba(112,224,189,.34); border-radius: 999px; color: var(--accent); background: rgba(112,224,189,.07); text-align: center; font-size: .62rem; font-weight: 750; transition: color .18s ease, border-color .18s ease, background .18s ease; }
+.model-chip { flex: 0 0 auto; min-width: 78px; padding: .42rem .58rem; border: 1px solid color-mix(in srgb, var(--accent) 38%, transparent); border-radius: 999px; color: var(--accent); background: color-mix(in srgb, var(--accent) 8%, transparent); text-align: center; font-size: .62rem; font-weight: 750; transition: color .18s ease, border-color .18s ease, background .18s ease; }
 .switch { width: 100%; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; margin-top: 1rem; padding: 5px; border: 1px solid var(--line); border-radius: 9px; background: rgba(5, 14, 18, .55); }
 .switch button { min-width: 0; min-height: 38px; padding: .5rem .42rem; border: 1px solid transparent; border-radius: 6px; background: transparent; color: var(--muted); cursor: pointer; font-size: .61rem; line-height: 1.15; text-align: center; transition: color .15s ease, border-color .15s ease, background .15s ease, box-shadow .15s ease; }
 .switch button:hover { color: var(--ink); background: rgba(255,255,255,.025); }
-.switch button:focus-visible { outline: none; box-shadow: 0 0 0 2px rgba(112,224,189,.32); }
-.switch button.active { color: var(--ink); border-color: rgba(112,224,189,.26); background: rgba(112,224,189,.10); }
+.switch button:focus-visible { outline: none; box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 38%, transparent); }
+.switch button.active { color: var(--ink); border-color: color-mix(in srgb, var(--accent) 28%, transparent); background: color-mix(in srgb, var(--accent) 11%, #0a171c); }
 #chart { width: 100%; height: auto; margin-top: .85rem; overflow: visible; }
 .relation { display: grid; grid-template-columns: 1fr auto; gap: 1rem; padding: .65rem 0; border-top: 1px solid var(--line); }
 .relation span { color: #cddbd8; font-size: .75rem; }
