@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="Public aggregate evidence explorer for Grounded Relational Intelligence." />
+  <title>Grounded Relational Intelligence — Evidence Explorer</title>
+  <link rel="stylesheet" href="./styles.css" />
+</head>
+<body>
+  <div class="ambient a" aria-hidden="true"></div><div class="ambient b" aria-hidden="true"></div>
+  <header>
+    <a class="brand" href="#top"><span class="mark">◇◇◇</span><span><b>Grounded Relational Intelligence</b><small>Article 03 · public evidence edition</small></span></a>
+    <nav><a href="#explorer">Explorer</a><a href="../ARTICLE.md">Article</a><a class="pill" href="https://github.com/vlada22/grounded-relational-intelligence-public">GitHub ↗</a></nav>
+  </header>
+  <main id="top">
+    <section class="hero">
+      <p class="kicker">From pixels to relationships</p>
+      <h1>Useful similarity.<br><em>Careful claims.</em></h1>
+      <p class="lead">Compare how two open vision transformers organize the same controlled scene across depth, then inspect where region quality stops turning into reliable relationships.</p>
+      <div class="rules"><span><b>Similarity</b> is evidence</span><span><b>Clusters</b> are candidates</span><span><b>Relationships</b> are claims</span></div>
+    </section>
+    <section id="explorer" class="explorer">
+      <div class="heading"><div><p class="kicker">Reviewed aggregate evidence</p><h2>Change the model. Change the layer.</h2></div><p>This public explorer ships no weights or raw feature tensors. It reads only reviewed aggregate measurements and a repository-authored procedural image.</p></div>
+      <div class="notice"><b>Static public artifact</b><span>No model inference · no credentials · no gated materials</span></div>
+      <div class="layout">
+        <article class="scene-card">
+          <div class="toolbar"><label>Model<select id="model"></select></label><label>Layer<select id="layer"></select></label><label class="check"><input id="grid" type="checkbox" checked> 32×32 patch grid</label></div>
+          <div id="scene" class="scene" tabindex="0" aria-label="Controlled scene patch coordinate explorer. Click or use arrow keys to move the selected patch."><img src="../assets/controlled-scene.svg" alt="Controlled procedural scene" /><canvas id="overlay" width="448" height="448"></canvas><span class="badge">source traceability</span></div>
+          <div class="patch-readout"><span>Selected patch</span><b id="patch">row 16 · col 16</b><span id="box">[224, 224] → [238, 238]</span></div>
+        </article>
+        <aside class="panel">
+          <div class="metric-grid"><article><span>Same-region retrieval</span><b id="retrieval">—</b></article><article><span>Cluster ARI</span><b id="ari">—</b></article><article><span>Boundary F1</span><b id="boundary">—</b></article><article><span>Grouping stability</span><b id="stability">—</b></article></div>
+          <article class="chart-card"><div class="card-head"><div><p class="kicker">Depth profile</p><h3 id="chart-title">Retrieval</h3></div><div id="metric-switch" class="switch"></div></div><svg id="chart" viewBox="0 0 620 280" role="img"></svg></article>
+          <article class="relationship-card"><p class="kicker">Typed relationships</p><h3>Where composition breaks</h3><div id="relations"></div><p id="relation-note"></p></article>
+        </aside>
+      </div>
+    </section>
+    <section class="meaning"><div><p class="kicker">The point of the experiment</p><h2>A representation can be useful without already being a world model.</h2></div><p>Patch features can support retrieval, grouping, and boundaries. The moment we say two regions are the same object, adjacent, near, or semantically similar, we have made a new claim. The public artifact keeps those steps separate so each one can be inspected.</p></section>
+  </main>
+  <footer><span>Grounded Relational Intelligence · Article 03</span><span>Public aggregate evidence only</span></footer>
+  <script type="module" src="./app.js"></script>
+</body>
+</html>
