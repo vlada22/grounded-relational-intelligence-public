@@ -51,33 +51,45 @@ def line_chart(filename: str, metric: str, title: str, subtitle: str) -> None:
 
 
 def relationship_chart() -> None:
-    out = header("Typed relationships remain difficult", "Best base-scene layer per public backbone; F1 after candidate-region matching.")
-    y0, maximum = 455, 0.5
+    out = header(
+        "Typed relationships remain difficult",
+        "Best base-scene layer per public backbone; F1 after candidate-region matching.",
+    )
+    x0, y0, maximum, group_gap, bar_width = 110, 455, 0.5, 370, 58
     for tick in (0, 0.1, 0.2, 0.3, 0.4, 0.5):
         y = y0 - (tick / maximum) * 300
         out.append(f'<line x1="80" y1="{y:.1f}" x2="930" y2="{y:.1f}" stroke="#20333a"/>')
+        out.append(f'<text x="40" y="{y + 4:.1f}" fill="#91a7a7" font-family="Arial" font-size="12">{tick:.1f}</text>')
     for group, model in enumerate(("DINOv2", "SigLIP 2")):
         record = RESULTS["models"][model]["typed_relationship_selected"]
-        values = (("Adjacent", record["adjacent_f1"], "#62dfc0"), ("Near", record["near_f1"], "#9b8cff"), ("Embedding", record["embedding_similar_f1"], "#efc56d"))
-        group_x = 110 + group * 370
+        values = (
+            ("Adjacent", record["adjacent_f1"], "#62dfc0"),
+            ("Near", record["near_f1"], "#9b8cff"),
+            ("Embedding", record["embedding_similar_f1"], "#efc56d"),
+        )
+        group_x = x0 + group * group_gap
         for index, (label, value, colour) in enumerate(values):
-            x = group_x + index * 86
+            x = group_x + index * (bar_width + 28)
             height = (value / maximum) * 300
             y = y0 - height
-            out.append(f'<rect x="{x}" y="{y:.1f}" width="58" height="{height:.1f}" rx="5" fill="{colour}"/>')
-            out.append(f'<text x="{x + 29}" y="{y - 10:.1f}" text-anchor="middle" fill="#e7f2ee" font-family="Arial" font-size="12">{value:.3f}</text>')
-            out.append(f'<text x="{x + 29}" y="480" text-anchor="middle" fill="#91a7a7" font-family="Arial" font-size="11">{label}</text>')
+            out.append(f'<rect x="{x}" y="{y:.1f}" width="{bar_width}" height="{height:.1f}" rx="5" fill="{colour}"/>')
+            out.append(f'<text x="{x + bar_width / 2}" y="{y - 10:.1f}" text-anchor="middle" fill="#e7f2ee" font-family="Arial" font-size="12">{value:.3f}</text>')
+            out.append(f'<text x="{x + bar_width / 2}" y="480" text-anchor="middle" fill="#91a7a7" font-family="Arial" font-size="11">{label}</text>')
         out.append(f'<text x="{group_x + 120}" y="525" text-anchor="middle" fill="{COLORS[model]}" font-family="Arial" font-size="16" font-weight="700">{model} · L{record["layer"]}</text>')
     out.append("</svg>")
     (OUT / "typed-relationships.svg").write_text("\n".join(out), encoding="utf-8")
 
 
 def realistic_chart() -> None:
-    out = header("Realistic clutter amplifies depth sensitivity", "Candidate connected regions under the same fixed probe. Descriptive only — no ground truth.")
+    out = header(
+        "Realistic clutter amplifies depth sensitivity",
+        "Candidate connected regions under the same fixed probe. Descriptive only — no ground truth.",
+    )
     x0, y0, x1, maximum = 110, 450, 910, 30
     for tick in (0, 5, 10, 15, 20, 25, 30):
         y = y0 - (tick / maximum) * 300
         out.append(f'<line x1="80" y1="{y:.1f}" x2="930" y2="{y:.1f}" stroke="#20333a"/>')
+        out.append(f'<text x="46" y="{y + 4:.1f}" fill="#91a7a7" font-family="Arial" font-size="12">{tick}</text>')
     for model in ("DINOv2", "SigLIP 2"):
         points = []
         for index, layer in enumerate((2, 5, 11)):
