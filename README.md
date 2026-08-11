@@ -62,7 +62,7 @@ The explorer performs no model inference. It reads only the public aggregate evi
 
 ```text
 ARTICLE.md                     single canonical article
-assets/controlled-scene.png   repository-authored procedural scene
+assets/controlled-scene.svg   repository-authored procedural scene
 assets/figures/                deterministic publication SVGs
 demo/                          static GitHub Pages explorer
 scripts/rebuild_figures.py     regenerate figures from aggregate evidence
@@ -72,6 +72,6 @@ THIRD_PARTY.md                 model/license boundary
 
 ## Public-safety boundary
 
-The public validation script scans the repository for known gated-access markers and credential workflow strings. The repository is designed so that the public artifact remains useful without reproducing private licensed inference paths.
+The public validation script enforces the approved model set, checks that only aggregate evidence is exposed, and rejects model-weight formats, environment-secret files, credential assignments, and duplicate article variants.
 
 For model licensing and redistribution boundaries, see [THIRD_PARTY.md](THIRD_PARTY.md).
